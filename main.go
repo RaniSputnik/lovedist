@@ -18,35 +18,61 @@ func main() {
 		flag.Usage()
 		return
 	}
-	input := os.Args[1]
-	output := os.Args[2]
-	log.Printf(input)
-	if err := doTheWork(input, output); err != nil {
+
+	params := &Params{
+		InputDir:  os.Args[1],
+		OutputDir: os.Args[2],
+		Logger:    log.New(os.Stderr, "", 0),
+	}
+
+	if err := Build(params); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Println("Completed successfully")
 	}
 }
 
-func doTheWork(input, output string) error {
-	if input == output {
-		return fmt.Errorf("Input must != output")
+type Params struct {
+	InputDir  string
+	OutputDir string
+	Logger    *log.Logger
+}
+
+func Build(params *Params) error {
+	if params.Logger == nil {
+		params.Logger = doNotLogger()
 	}
-	if !strings.HasSuffix(input, "/") {
-		input += "/"
+
+	if params.InputDir == params.OutputDir {
+		return fmt.Errorf("Input directory must != output directory")
 	}
-	outfile := filepath.Join(output, fmt.Sprintf("%s.love", filepath.Base(input)))
-	log.Printf("Outputting to %s", outfile)
+	if !strings.HasSuffix(params.InputDir, "/") {
+		params.InputDir += "/"
+	}
+	outfile := filepath.Join(params.OutputDir, fmt.Sprintf("%s.love", filepath.Base(params.InputDir)))
+	params.Logger.Printf("Outputting to %s", outfile)
 	fw, err := os.Create(outfile)
 	if err != nil {
 		return err
 	}
-	if err := zip.Archive(input, fw, logArchivePath); err != nil {
+	err = zip.Archive(params.InputDir, fw, func(archivePath string) {
+		params.Logger.Printf("Zipping %s", archivePath)
+	})
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func logArchivePath(archivePath string) {
-	log.Println(archivePath)
+// The default logger used if logger is nil. This saves us having to
+// make a nil check everytime we want to log; We set up a logger with
+// a writer that does nothing.
+func doNotLogger() *log.Logger {
+	return log.New(&doNotWriter{}, "", 0)
+}
+
+type doNotWriter struct{}
+
+func (*doNotWriter) Write(p []byte) (n int, err error) {
+	return len(p), nil
 }
