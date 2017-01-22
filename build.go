@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -82,10 +83,11 @@ func Build(params *Params) error {
 }
 
 func buildMac(lovefile string, params *Params) error {
+	params.Logger.Print("Starting build for osx")
 	lovefilename := filepath.Base(lovefile)
 
 	// Copy the love.app
-	outapp := filepath.Join(params.OutputDir, fmt.Sprintf("%s.app", params.Name))
+	outapp := filepath.Join(params.OutputDir, "osx", fmt.Sprintf("%s.app", params.Name))
 	if err := copy.Dir(params.PathToLoveApp, outapp); err != nil {
 		return err
 	}
@@ -129,7 +131,43 @@ func buildMac(lovefile string, params *Params) error {
 	return nil
 }
 
-func buildWin(lovefile string, params *Params) error {
+func buildWin(lovepath string, params *Params) error {
+	params.Logger.Print("Starting build for win32")
+
+	// Copy over dlls
+	// TODO don't copy the files we don't want to include in the final build
+	// love.exe and lovec.exe are not required (we're creating our own exe)
+	// changes.txt and readme.txt are superfluous
+	outpath := filepath.Join(params.OutputDir, "win32")
+	params.Logger.Printf("Outputting to %s", outpath)
+	exePath := filepath.Dir(params.PathToLoveExe)
+	params.Logger.Printf("Copying files from %s", exePath)
+	if err := copy.Dir(exePath, outpath); err != nil {
+		return err
+	}
+
+	// Open the lovefile and love exe
+	loveexe, err := os.Open(params.PathToLoveExe)
+	defer loveexe.Close()
+	if err != nil {
+		return err
+	}
+	lovefile, err := os.Open(lovepath)
+	defer lovefile.Close()
+	if err != nil {
+		return err
+	}
+
+	// Create the exe and copy the two files in
+	outexe := filepath.Join(outpath, fmt.Sprintf("%s.exe", params.Name))
+	f, err := os.Create(outexe)
+	defer f.Close()
+	if _, err := io.Copy(f, loveexe); err != nil {
+		return err
+	}
+	if _, err := io.Copy(f, lovefile); err != nil {
+		return err
+	}
 
 	return nil
 }
