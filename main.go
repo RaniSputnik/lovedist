@@ -7,18 +7,21 @@ import (
 )
 
 func main() {
+	pName := flag.String("name", "", "The output name of the game")
 	pLove := flag.String("love", "/Applications/love.app", "Path to love")
 	flag.Parse()
 
-	if len(os.Args) < 3 {
+	args := flag.Args()
+	if len(args) < 2 {
 		flag.Usage()
 		return
 	}
 
 	logger := log.New(os.Stderr, "", 0)
 	params := &Params{
-		InputDir:   os.Args[1],
-		OutputDir:  os.Args[2],
+		Name:       *pName,
+		InputDir:   args[0],
+		OutputDir:  args[1],
 		PathToLove: *pLove,
 		Logger:     logger,
 	}
