@@ -7,16 +7,18 @@ import (
 	"path/filepath"
 	"strings"
 
+	plist "github.com/DHowett/go-plist"
 	"github.com/RaniSputnik/lovedist/copy"
 	"github.com/pierrre/archivefile/zip"
 )
 
 type Params struct {
-	Name       string
-	InputDir   string
-	OutputDir  string
-	PathToLove string
-	Logger     *log.Logger
+	Name             string
+	InputDir         string
+	OutputDir        string
+	PathToLove       string
+	BundleIdentifier string
+	Logger           *log.Logger
 }
 
 func Build(params *Params) error {
@@ -61,6 +63,34 @@ func Build(params *Params) error {
 	// perform "Copy love.app" and "Create .love" steps concurrently
 	finallovepath := filepath.Join(outapp, "Contents", "Resources", outfilename)
 	if err := copy.File(outfile, finallovepath); err != nil {
+		return err
+	}
+
+	// Modify info.plist
+	plistpath := filepath.Join(outapp, "Contents", "info.plist")
+	plistfile, err := os.OpenFile(plistpath, os.O_RDWR, 0666)
+	defer plistfile.Close()
+	if err != nil {
+		return err
+	}
+	var res loveAppPlist
+	decoder := plist.NewDecoder(plistfile)
+	if err := decoder.Decode(&res); err != nil {
+		return err
+	}
+	res.BundleName = params.Name
+	if params.BundleIdentifier != "" {
+		res.BundleIdentifier = params.BundleIdentifier
+	}
+	if err := plistfile.Truncate(0); err != nil {
+		return err
+	}
+	if _, err := plistfile.Seek(0, 0); err != nil {
+		return err
+	}
+	encoder := plist.NewEncoder(plistfile)
+	encoder.Indent("\t")
+	if err := encoder.Encode(res); err != nil {
 		return err
 	}
 

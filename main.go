@@ -9,6 +9,7 @@ import (
 func main() {
 	pName := flag.String("name", "", "The output name of the game")
 	pLove := flag.String("love", "/Applications/love.app", "Path to love")
+	pBundleID := flag.String("bundleid", "", "The bundle identifier of the game, usually in reverse domain form eg. com.company.product")
 	flag.Parse()
 
 	args := flag.Args()
@@ -19,11 +20,12 @@ func main() {
 
 	logger := log.New(os.Stderr, "", 0)
 	params := &Params{
-		Name:       *pName,
-		InputDir:   args[0],
-		OutputDir:  args[1],
-		PathToLove: *pLove,
-		Logger:     logger,
+		Name:             *pName,
+		InputDir:         args[0],
+		OutputDir:        args[1],
+		PathToLove:       *pLove,
+		BundleIdentifier: *pBundleID,
+		Logger:           logger,
 	}
 
 	if err := Build(params); err != nil {
