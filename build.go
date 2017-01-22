@@ -42,7 +42,8 @@ func Build(params *Params) error {
 	}
 
 	// Create the .love file
-	outfile := filepath.Join(params.OutputDir, fmt.Sprintf("%s.love", params.Name))
+	outfilename := fmt.Sprintf("%s.love", params.Name)
+	outfile := filepath.Join(params.OutputDir, outfilename)
 	params.Logger.Printf("Outputting to %s", outfile)
 	fw, err := os.Create(outfile)
 	if err != nil {
@@ -52,6 +53,14 @@ func Build(params *Params) error {
 		params.Logger.Printf("Zipping %s", archivePath)
 	})
 	if err != nil {
+		return err
+	}
+
+	// Copy .love file into love app
+	// TODO we have kept this a separate step because we could
+	// perform "Copy love.app" and "Create .love" steps concurrently
+	finallovepath := filepath.Join(outapp, "Contents", "Resources", outfilename)
+	if err := copy.File(outfile, finallovepath); err != nil {
 		return err
 	}
 
