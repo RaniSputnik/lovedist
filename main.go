@@ -8,10 +8,10 @@ import (
 
 func main() {
 	pName := flag.String("name", "", "The output name of the game")
-	pBuildWin := flag.Bool("win", false, "If true, a build for Windows will be attempted")
-	pLoveExe := flag.String("exe", "love.exe", "Path to the love.exe, required for a Windows build")
-	pBuildOsx := flag.Bool("osx", false, "If true, a build for OSX will be attempted")
-	pLoveApp := flag.String("app", "/Applications/love.app", "Path to the love.app, required for OSX build")
+	pBuildWin := flag.Bool("win", true, "If true, a build for Windows will be attempted")
+	pLoveExe := flag.String("exe", "./love/win32/love.exe", "Path to the love.exe, required for a Windows build")
+	pBuildOsx := flag.Bool("osx", true, "If true, a build for OSX will be attempted")
+	pLoveApp := flag.String("app", "./love/osx/love.app", "Path to the love.app, required for OSX build")
 	pBundleID := flag.String("bundleid", "", "The bundle identifier of the game, usually in reverse domain form eg. com.company.product")
 	flag.Parse()
 
