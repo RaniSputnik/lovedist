@@ -10,46 +10,66 @@ import (
 
 	"strings"
 
+	"github.com/RaniSputnik/lovedist/copy"
 	"github.com/RaniSputnik/lovedist/zip"
 )
 
 func main() {
+	pLove := flag.String("love", "/Applications/love.app", "Path to love")
+	flag.Parse()
+
 	if len(os.Args) < 3 {
 		flag.Usage()
 		return
 	}
 
+	logger := log.New(os.Stderr, "", 0)
 	params := &Params{
-		InputDir:  os.Args[1],
-		OutputDir: os.Args[2],
-		Logger:    log.New(os.Stderr, "", 0),
+		InputDir:   os.Args[1],
+		OutputDir:  os.Args[2],
+		PathToLove: *pLove,
+		Logger:     logger,
 	}
 
 	if err := Build(params); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	} else {
-		log.Println("Completed successfully")
+		logger.Println("Completed successfully")
 	}
 }
 
 type Params struct {
-	InputDir  string
-	OutputDir string
-	Logger    *log.Logger
+	Name       string
+	InputDir   string
+	OutputDir  string
+	PathToLove string
+	Logger     *log.Logger
 }
 
 func Build(params *Params) error {
+
+	// Validate params
 	if params.Logger == nil {
 		params.Logger = doNotLogger()
 	}
-
 	if params.InputDir == params.OutputDir {
 		return fmt.Errorf("Input directory must != output directory")
 	}
 	if !strings.HasSuffix(params.InputDir, "/") {
 		params.InputDir += "/"
 	}
-	outfile := filepath.Join(params.OutputDir, fmt.Sprintf("%s.love", filepath.Base(params.InputDir)))
+	if params.Name == "" {
+		params.Name = filepath.Base(params.InputDir)
+	}
+
+	// Copy the love.app
+	outapp := filepath.Join(params.OutputDir, fmt.Sprintf("%s.app", params.Name))
+	if err := copy.Dir(params.PathToLove, outapp); err != nil {
+		return err
+	}
+
+	// Create the .love file
+	outfile := filepath.Join(params.OutputDir, fmt.Sprintf("%s.love", params.Name))
 	params.Logger.Printf("Outputting to %s", outfile)
 	fw, err := os.Create(outfile)
 	if err != nil {
@@ -61,6 +81,7 @@ func Build(params *Params) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
