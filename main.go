@@ -8,7 +8,10 @@ import (
 
 func main() {
 	pName := flag.String("name", "", "The output name of the game")
-	pLove := flag.String("love", "/Applications/love.app", "Path to love")
+	pBuildWin := flag.Bool("win", false, "If true, a build for Windows will be attempted")
+	pLoveExe := flag.String("exe", "love.exe", "Path to the love.exe, required for a Windows build")
+	pBuildOsx := flag.Bool("osx", false, "If true, a build for OSX will be attempted")
+	pLoveApp := flag.String("app", "/Applications/love.app", "Path to the love.app, required for OSX build")
 	pBundleID := flag.String("bundleid", "", "The bundle identifier of the game, usually in reverse domain form eg. com.company.product")
 	flag.Parse()
 
@@ -20,12 +23,22 @@ func main() {
 
 	logger := log.New(os.Stderr, "", 0)
 	params := &Params{
-		Name:             *pName,
-		InputDir:         args[0],
-		OutputDir:        args[1],
-		PathToLove:       *pLove,
-		BundleIdentifier: *pBundleID,
-		Logger:           logger,
+		Name:      *pName,
+		InputDir:  args[0],
+		OutputDir: args[1],
+		Logger:    logger,
+	}
+
+	if *pBuildWin {
+		params.WinParams = &WinParams{
+			PathToLoveExe: *pLoveExe,
+		}
+	}
+	if *pBuildOsx {
+		params.MacParams = &MacParams{
+			PathToLoveApp:    *pLoveApp,
+			BundleIdentifier: *pBundleID,
+		}
 	}
 
 	if err := Build(params); err != nil {

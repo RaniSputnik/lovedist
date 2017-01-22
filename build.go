@@ -13,12 +13,22 @@ import (
 )
 
 type Params struct {
-	Name             string
-	InputDir         string
-	OutputDir        string
-	PathToLove       string
+	Name      string
+	InputDir  string
+	OutputDir string
+	Logger    *log.Logger
+
+	*MacParams
+	*WinParams
+}
+
+type MacParams struct {
+	PathToLoveApp    string
 	BundleIdentifier string
-	Logger           *log.Logger
+}
+
+type WinParams struct {
+	PathToLoveExe string
 }
 
 func Build(params *Params) error {
@@ -37,12 +47,6 @@ func Build(params *Params) error {
 		params.Name = filepath.Base(params.InputDir)
 	}
 
-	// Copy the love.app
-	outapp := filepath.Join(params.OutputDir, fmt.Sprintf("%s.app", params.Name))
-	if err := copy.Dir(params.PathToLove, outapp); err != nil {
-		return err
-	}
-
 	// Create the .love file
 	outfilename := fmt.Sprintf("%s.love", params.Name)
 	outfile := filepath.Join(params.OutputDir, outfilename)
@@ -58,11 +62,39 @@ func Build(params *Params) error {
 		return err
 	}
 
+	// TODO perform these steps in parallel
+
+	// Build OSX if there are mac params
+	if params.MacParams != nil {
+		if err := buildMac(outfile, params); err != nil {
+			return err
+		}
+	}
+
+	// Build Windows if there are win params
+	if params.WinParams != nil {
+		if err := buildWin(outfile, params); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func buildMac(lovefile string, params *Params) error {
+	lovefilename := filepath.Base(lovefile)
+
+	// Copy the love.app
+	outapp := filepath.Join(params.OutputDir, fmt.Sprintf("%s.app", params.Name))
+	if err := copy.Dir(params.PathToLoveApp, outapp); err != nil {
+		return err
+	}
+
 	// Copy .love file into love app
 	// TODO we have kept this a separate step because we could
 	// perform "Copy love.app" and "Create .love" steps concurrently
-	finallovepath := filepath.Join(outapp, "Contents", "Resources", outfilename)
-	if err := copy.File(outfile, finallovepath); err != nil {
+	finallovepath := filepath.Join(outapp, "Contents", "Resources", lovefilename)
+	if err := copy.File(lovefile, finallovepath); err != nil {
 		return err
 	}
 
@@ -93,6 +125,11 @@ func Build(params *Params) error {
 	if err := encoder.Encode(res); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func buildWin(lovefile string, params *Params) error {
 
 	return nil
 }
