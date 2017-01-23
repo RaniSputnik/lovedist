@@ -150,9 +150,6 @@ func buildWin(lovepath string, params *Params) error {
 	params.Logger.Print("Starting build for win32")
 
 	// Copy over dlls
-	// TODO don't copy the files we don't want to include in the final build
-	// love.exe and lovec.exe are not required (we're creating our own exe)
-	// changes.txt and readme.txt are superfluous
 	outpath := filepath.Join(params.OutputDir, "win32")
 	params.Logger.Printf("Outputting to %s", outpath)
 	exePath := filepath.Dir(params.PathToLoveExe)
