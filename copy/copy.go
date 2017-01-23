@@ -54,10 +54,10 @@ func File(src, dst string) (err error) {
 	return
 }
 
-// Dir recursively copies a directory tree, attempting to preserve permissions.
-// Source directory must exist, destination directory must *not* exist.
-// Symlinks are ignored and skipped.
-func Dir(src string, dst string) (err error) {
+// DirFilter recursively copies a directory tree, attempting to preserve
+// permissions. Source directory must exist, destination directory must
+// *not* exist. Filter func can be used to exclude files from the copy.
+func DirFilter(src string, dst string, filterFunc FilterFunc) (err error) {
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
 
@@ -91,17 +91,16 @@ func Dir(src string, dst string) (err error) {
 		srcPath := filepath.Join(src, entry.Name())
 		dstPath := filepath.Join(dst, entry.Name())
 
+		if !filterFunc(entry) {
+			continue
+		}
+
 		if entry.IsDir() {
 			err = Dir(srcPath, dstPath)
 			if err != nil {
 				return
 			}
 		} else {
-			// Skip symlinks.
-			if entry.Mode()&os.ModeSymlink != 0 {
-				continue
-			}
-
 			err = File(srcPath, dstPath)
 			if err != nil {
 				return
@@ -110,4 +109,26 @@ func Dir(src string, dst string) (err error) {
 	}
 
 	return
+}
+
+// Dir recursively copies a directory tree, attempting to preserve permissions.
+// Source directory must exist, destination directory must *not* exist.
+// Symlinks are ignored and skipped.
+func Dir(src string, dst string) (err error) {
+	return DirFilter(src, dst, SkipSymLinks)
+}
+
+// FilterFunc can be used to filter files in a directory copy. Return
+// true to include a file in the copy and false to exclude the files
+type FilterFunc func(entry os.FileInfo) bool
+
+// SkipSymLinks is a filter func for skipping sym links when copying
+func SkipSymLinks(entry os.FileInfo) bool {
+	if entry.IsDir() {
+		return true
+	}
+	if entry.Mode()&os.ModeSymlink != 0 {
+		return false
+	}
+	return true
 }

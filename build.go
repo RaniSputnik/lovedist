@@ -142,7 +142,7 @@ func buildWin(lovepath string, params *Params) error {
 	params.Logger.Printf("Outputting to %s", outpath)
 	exePath := filepath.Dir(params.PathToLoveExe)
 	params.Logger.Printf("Copying files from %s", exePath)
-	if err := copy.Dir(exePath, outpath); err != nil {
+	if err := copy.DirFilter(exePath, outpath, filterRequiredWinFiles); err != nil {
 		return err
 	}
 
@@ -170,4 +170,19 @@ func buildWin(lovepath string, params *Params) error {
 	}
 
 	return nil
+}
+
+func filterRequiredWinFiles(entry os.FileInfo) bool {
+	if entry.IsDir() {
+		return true
+	}
+	name := entry.Name()
+	if name == "license.txt" {
+		return true
+	}
+	ext := filepath.Ext(name)
+	if ext == ".dll" || ext == ".ico" {
+		return true
+	}
+	return false
 }
