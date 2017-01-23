@@ -13,6 +13,13 @@ import (
 	"github.com/pierrre/archivefile/zip"
 )
 
+// Params are provided to build to specify the build requirements
+//
+// Name refers to the game name that the user will see
+// InputDir should be the directory that contains the main.lua file
+// OuputDir will be the output location for the build
+// Logger can be used to get detailed information about the build as
+// it proceeds. Can be safely left as nil.
 type Params struct {
 	Name      string
 	InputDir  string
@@ -23,15 +30,23 @@ type Params struct {
 	*WinParams
 }
 
+// MacParams are used to provide details of a build for the OSX target
 type MacParams struct {
 	PathToLoveApp    string
 	BundleIdentifier string
 }
 
+// WinParams are used to provide details of a build for the Windows target
 type WinParams struct {
 	PathToLoveExe string
 }
 
+// Build creates a .love file from a given love source directory.
+//
+// By default a build will only create the .love file. Additional
+// platforms will be built ONLY if their parameters are provided.
+// Provide MacParams to build and osx .app file, and provide WinParams
+// to build a Windows 32 .exe file.
 func Build(params *Params) error {
 
 	// Validate params
