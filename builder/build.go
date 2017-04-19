@@ -1,4 +1,4 @@
-package main
+package builder
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	plist "github.com/DHowett/go-plist"
-	"github.com/RaniSputnik/lovedist/copy"
+	"github.com/RaniSputnik/lovedist/builder/copy"
 	"github.com/pierrre/archivefile/zip"
 )
 

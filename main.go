@@ -4,6 +4,8 @@ import (
 	"flag"
 	"log"
 	"os"
+
+	"github.com/RaniSputnik/lovedist/builder"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 	}
 
 	logger := log.New(os.Stderr, "", 0)
-	params := &Params{
+	params := &builder.Params{
 		Name:      *pName,
 		InputDir:  args[0],
 		OutputDir: args[1],
@@ -30,33 +32,20 @@ func main() {
 	}
 
 	if *pBuildWin {
-		params.WinParams = &WinParams{
+		params.WinParams = &builder.WinParams{
 			PathToLoveExe: *pLoveExe,
 		}
 	}
 	if *pBuildOsx {
-		params.MacParams = &MacParams{
+		params.MacParams = &builder.MacParams{
 			PathToLoveApp:    *pLoveApp,
 			BundleIdentifier: *pBundleID,
 		}
 	}
 
-	if err := Build(params); err != nil {
+	if err := builder.Build(params); err != nil {
 		logger.Fatal(err)
 	} else {
 		logger.Println("Completed successfully")
 	}
-}
-
-// The default logger used if logger is nil. This saves us having to
-// make a nil check everytime we want to log; We set up a logger with
-// a writer that does nothing.
-func doNotLogger() *log.Logger {
-	return log.New(&doNotWriter{}, "", 0)
-}
-
-type doNotWriter struct{}
-
-func (*doNotWriter) Write(p []byte) (n int, err error) {
-	return len(p), nil
 }

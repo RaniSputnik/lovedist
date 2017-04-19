@@ -1,4 +1,4 @@
-package main
+package builder
 
 type loveAppPlist struct {
 	BuildMachineOSBuild         string        `plist:"BuildMachineOSBuild"`
