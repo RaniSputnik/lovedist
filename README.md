@@ -8,11 +8,11 @@ If you have [go](https://golang.org/) installed then it's as simple as cloning t
 
 ```
 git clone https://github.com/RaniSputnik/lovedist.git
-cd lovedist
-go install .
+cd lovedist/cmd
+go build -o lovedist
 ```
 
-### Usage
+### CLI Usage
 
 ```
 lovedist [flags] /path/to/game /path/to/output
