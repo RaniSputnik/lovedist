@@ -14,6 +14,7 @@ func main() {
 	router.HandleFunc("/_ah/health", healthHandler()).Methods(http.MethodGet)
 
 	router.HandleFunc("/", indexHandler()).Methods(http.MethodGet)
+	router.HandleFunc("/build", buildHandler()).Methods(http.MethodPost)
 
 	http.ListenAndServe(port, wrapGlobalMiddleware(router))
 }

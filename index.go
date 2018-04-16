@@ -21,9 +21,8 @@ const indexHTML = `<!doctype html>
 		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
 	</head>
 	<body>
-		<form enctype="multipart/form-data" action="http://127.0.0.1:9090/upload" method="post">
-			<input type="file" name="uploadfile" />
-			<input type="hidden" name="token" value="{{.}}"/>
+		<form enctype="multipart/form-data" action="/build" method="POST">
+			<input type="file" name="uploadfile" accept=".love"/>
 			<input type="submit" value="upload" />
 		</form>
 	</body>
