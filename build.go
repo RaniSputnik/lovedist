@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/RaniSputnik/lovedist/builder"
+	"github.com/RaniSputnik/lovedist/builder/zip"
 )
 
 func buildHandler() http.HandlerFunc {
@@ -21,24 +21,35 @@ func buildHandler() http.HandlerFunc {
 		}
 		defer file.Close()
 
-		if err := doBuild(file); err != nil {
+		id, err := doBuild(file)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			// TODO write HTML
 			return
 		}
 
-		http.Redirect(w, r, "/", http.StatusFound)
+		filename := filepath.Base(buildDir(id))
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", filename))
+		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+
+		zip.Archive(buildDir(id), w, nil)
 	}
 }
 
-func doBuild(input io.Reader) error {
-	logger := log.New(os.Stderr, "", 0)
+func doBuild(input io.Reader) (string, error) {
+	// TODO generate a proper ID
+	id := fmt.Sprintf("%d", time.Now().Unix())
+
 	params := &builder.Params{
-		OutputDir: fmt.Sprintf("./tmp/build_%d", time.Now().Unix()),
-		Logger:    logger,
+		OutputDir: buildDir(id),
 		WinParams: &builder.WinParams{
 			PathToLoveExe: "./love/win32/love.exe",
 		},
 	}
-	return builder.Build(input, params)
+	err := builder.Build(input, params)
+	return id, err
+}
+
+func buildDir(id string) string {
+	return fmt.Sprintf("./tmp/build_%s", id)
 }
