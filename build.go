@@ -2,7 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
+	"time"
+
+	"github.com/RaniSputnik/lovedist/builder"
 )
 
 func buildHandler() http.HandlerFunc {
@@ -15,6 +21,24 @@ func buildHandler() http.HandlerFunc {
 		}
 		defer file.Close()
 
+		if err := doBuild(file); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			// TODO write HTML
+			return
+		}
+
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
+}
+
+func doBuild(input io.Reader) error {
+	logger := log.New(os.Stderr, "", 0)
+	params := &builder.Params{
+		OutputDir: fmt.Sprintf("./tmp/build_%d", time.Now().Unix()),
+		Logger:    logger,
+		WinParams: &builder.WinParams{
+			PathToLoveExe: "./love/win32/love.exe",
+		},
+	}
+	return builder.Build(input, params)
 }

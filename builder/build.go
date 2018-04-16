@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	plist "github.com/DHowett/go-plist"
 	"github.com/RaniSputnik/lovedist/builder/copy"
@@ -22,7 +21,6 @@ import (
 // it proceeds. Can be safely left as nil.
 type Params struct {
 	Name      string
-	InputDir  string
 	OutputDir string
 	Logger    *log.Logger
 
@@ -41,55 +39,29 @@ type WinParams struct {
 	PathToLoveExe string
 }
 
-// Build creates a .love file from a given love source directory.
-//
-// By default a build will only create the .love file. Additional
-// platforms will be built ONLY if their parameters are provided.
-// Provide MacParams to build and osx .app file, and provide WinParams
-// to build a Windows 32 .exe file.
-func Build(params *Params) error {
+// Build compiles executables for Windows and OSX given the input .love file.
+func Build(input io.Reader, params *Params) error {
 
 	// Validate params
 	if params.Logger == nil {
 		params.Logger = doNotLogger()
 	}
-	if params.InputDir == params.OutputDir {
-		return fmt.Errorf("Input directory must != output directory")
-	}
-	if !strings.HasSuffix(params.InputDir, "/") {
-		params.InputDir += "/"
-	}
 	if params.Name == "" {
-		params.Name = filepath.Base(params.InputDir)
-	}
-
-	// Create the .love file
-	outfilename := fmt.Sprintf("%s.love", params.Name)
-	outfile := filepath.Join(params.OutputDir, outfilename)
-	params.Logger.Printf("Outputting to %s", outfile)
-	fw, err := os.Create(outfile)
-	if err != nil {
-		return err
-	}
-	err = zip.Archive(params.InputDir, fw, func(archivePath string) {
-		params.Logger.Printf("Zipping %s", archivePath)
-	})
-	if err != nil {
-		return err
+		params.Name = "mygame"
 	}
 
 	// TODO perform these steps in parallel
 
 	// Build OSX if there are mac params
-	if params.MacParams != nil {
-		if err := buildMac(outfile, params); err != nil {
+	/*if params.MacParams != nil {
+		if err := buildMac(loveFile, params); err != nil {
 			return err
 		}
-	}
+	}*/
 
 	// Build Windows if there are win params
 	if params.WinParams != nil {
-		if err := buildWin(outfile, params); err != nil {
+		if err := buildWin(input, params); err != nil {
 			return err
 		}
 	}
@@ -97,9 +69,17 @@ func Build(params *Params) error {
 	return nil
 }
 
+// createLoveFile creates a .love archive from the given input directory
+func createLoveFile(outfile string, inputDir string) error {
+	fw, err := os.Create(outfile)
+	if err != nil {
+		return err
+	}
+	return zip.Archive(inputDir, fw, nil)
+}
+
 func buildMac(lovefile string, params *Params) error {
 	params.Logger.Print("Starting build for osx")
-	lovefilename := filepath.Base(lovefile)
 
 	// Copy the love.app
 	outapp := filepath.Join(params.OutputDir, "osx", fmt.Sprintf("%s.app", params.Name))
@@ -110,7 +90,7 @@ func buildMac(lovefile string, params *Params) error {
 	// Copy .love file into love app
 	// TODO we have kept this a separate step because we could
 	// perform "Copy love.app" and "Create .love" steps concurrently
-	finallovepath := filepath.Join(outapp, "Contents", "Resources", lovefilename)
+	finallovepath := filepath.Join(outapp, "Contents", "Resources", fmt.Sprintf("%s.love", params.Name))
 	if err := copy.File(lovefile, finallovepath); err != nil {
 		return err
 	}
@@ -146,7 +126,7 @@ func buildMac(lovefile string, params *Params) error {
 	return nil
 }
 
-func buildWin(lovepath string, params *Params) error {
+func buildWin(lovefile io.Reader, params *Params) error {
 	params.Logger.Print("Starting build for win32")
 
 	// Copy over dlls
@@ -161,11 +141,6 @@ func buildWin(lovepath string, params *Params) error {
 	// Open the lovefile and love exe
 	loveexe, err := os.Open(params.PathToLoveExe)
 	defer loveexe.Close()
-	if err != nil {
-		return err
-	}
-	lovefile, err := os.Open(lovepath)
-	defer lovefile.Close()
 	if err != nil {
 		return err
 	}
