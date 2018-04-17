@@ -55,5 +55,5 @@ func doBuild(input io.Reader) (string, error) {
 }
 
 func buildDir(id string) string {
-	return fmt.Sprintf("./tmp/build_%s", id)
+	return fmt.Sprintf("./build/build_%s", id)
 }
