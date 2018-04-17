@@ -53,11 +53,11 @@ func Build(input io.Reader, params *Params) error {
 	// TODO perform these steps in parallel
 
 	// Build OSX if there are mac params
-	/*if params.MacParams != nil {
-		if err := buildMac(loveFile, params); err != nil {
+	if params.MacParams != nil {
+		if err := buildMac(input, params); err != nil {
 			return err
 		}
-	}*/
+	}
 
 	// Build Windows if there are win params
 	if params.WinParams != nil {
@@ -78,7 +78,7 @@ func createLoveFile(outfile string, inputDir string) error {
 	return zip.Archive(inputDir, fw, nil)
 }
 
-func buildMac(lovefile string, params *Params) error {
+func buildMac(lovefile io.Reader, params *Params) error {
 	params.Logger.Print("Starting build for osx")
 
 	// Copy the love.app
@@ -91,9 +91,12 @@ func buildMac(lovefile string, params *Params) error {
 	// TODO we have kept this a separate step because we could
 	// perform "Copy love.app" and "Create .love" steps concurrently
 	finallovepath := filepath.Join(outapp, "Contents", "Resources", fmt.Sprintf("%s.love", params.Name))
-	if err := copy.File(lovefile, finallovepath); err != nil {
+	file, err := os.Create(finallovepath)
+	if err != nil {
 		return err
 	}
+	defer file.Close()
+	io.Copy(file, lovefile)
 
 	// Modify info.plist
 	plistpath := filepath.Join(outapp, "Contents", "info.plist")
@@ -119,11 +122,7 @@ func buildMac(lovefile string, params *Params) error {
 	}
 	encoder := plist.NewEncoder(plistfile)
 	encoder.Indent("\t")
-	if err := encoder.Encode(res); err != nil {
-		return err
-	}
-
-	return nil
+	return encoder.Encode(res)
 }
 
 func buildWin(lovefile io.Reader, params *Params) error {

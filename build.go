@@ -45,6 +45,10 @@ func doBuild(input io.Reader) (string, error) {
 		WinParams: &builder.WinParams{
 			PathToLoveExe: "./love/win32/love.exe",
 		},
+		MacParams: &builder.MacParams{
+			PathToLoveApp:    "./love/osx/love.app",
+			BundleIdentifier: "com.example.todo",
+		},
 	}
 	err := builder.Build(input, params)
 	return id, err
