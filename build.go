@@ -11,7 +11,7 @@ import (
 	"github.com/RaniSputnik/lovedist/builder/zip"
 )
 
-func buildHandler() http.HandlerFunc {
+func buildHandler(out string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(32 << 20)
 		file, _, err := r.FormFile("uploadfile")
@@ -21,27 +21,29 @@ func buildHandler() http.HandlerFunc {
 		}
 		defer file.Close()
 
-		id, err := doBuild(file)
+		id, err := doBuild(file, out)
 		if err != nil {
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			// TODO write HTML
 			return
 		}
 
-		filename := filepath.Base(buildDir(id))
+		outDir := buildDir(out, id)
+		filename := filepath.Base(outDir)
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", filename))
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 
-		zip.Archive(buildDir(id), w, nil)
+		zip.Archive(outDir, w, nil)
 	}
 }
 
-func doBuild(input io.Reader) (string, error) {
+func doBuild(input io.Reader, out string) (string, error) {
 	// TODO generate a proper ID
 	id := fmt.Sprintf("%d", time.Now().Unix())
 
 	params := &builder.Params{
-		OutputDir: buildDir(id),
+		OutputDir: buildDir(out, id),
 		WinParams: &builder.WinParams{
 			PathToLoveExe: "./love/win32/love.exe",
 		},
@@ -54,6 +56,6 @@ func doBuild(input io.Reader) (string, error) {
 	return id, err
 }
 
-func buildDir(id string) string {
-	return fmt.Sprintf("./build/build_%s", id)
+func buildDir(root, id string) string {
+	return filepath.Join(root, fmt.Sprintf("build_%s", id))
 }
