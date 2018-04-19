@@ -9,7 +9,7 @@ import (
 
 	plist "github.com/DHowett/go-plist"
 	"github.com/RaniSputnik/lovedist/builder/copy"
-	"github.com/pierrre/archivefile/zip"
+	"github.com/RaniSputnik/lovedist/builder/zip"
 )
 
 // Params are provided to build to specify the build requirements
