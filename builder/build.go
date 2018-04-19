@@ -99,7 +99,7 @@ func buildMac(lovefile io.Reader, params *Params) error {
 	io.Copy(file, lovefile)
 
 	// Modify info.plist
-	plistpath := filepath.Join(outapp, "Contents", "info.plist")
+	plistpath := filepath.Join(outapp, "Contents", "Info.plist")
 	plistfile, err := os.OpenFile(plistpath, os.O_RDWR, 0666)
 	defer plistfile.Close()
 	if err != nil {
