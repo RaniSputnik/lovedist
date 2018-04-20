@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"html/template"
+	"fmt"
 	"net/http"
 )
 
-const indexHTML = `<!doctype html>
+// TODO move to common template
+const internalServerErrorHTML = `<!doctype html>
 <html class="no-js" lang="">
 	<head>
 		<meta charset="utf-8">
@@ -36,38 +37,15 @@ const indexHTML = `<!doctype html>
 				height: 60px;
 				line-height: 60px;
 				background-color: #f5f5f5;
-				z-index: 100;
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container text-center">
-			</br><h1>LÖVE Distributor</h1></br>
+			</br><h1>Something went wrong</h1></br>
 			
-			<p class="lead">Build and distribute your <a href="https://love2d.org/" target="_blank">LÖVE</a> games easily.</p>
-			</br>
-
-			<div class="card">
-				<div class="card-body">
-					<form class="form-inline" enctype="multipart/form-data" action="/build" method="POST">
-						<div class="form-group">
-							<input type="file" class="form-control-file" id="fileInput" name="uploadfile" accept=".love" required>
-						</div>
-						<button class="btn btn-primary" type="submit">Upload</button>
-					</form>
-				</div>
-			</div>
-
-			</br>
-
-			<div class="card">
-				<h5 class="card-header">How it works</h5>
-				<ul class="list-group list-group-flush">
-					<li class="list-group-item">Upload your .love file using the form above.</li>
-					<li class="list-group-item">We'll send you executables for Windows, Mac and Linux.</li>
-					<li class="list-group-item">Download and play the game or share with friends.</li>
-				</ul>
-			</div>
+			<p class="lead">Unfortunately there was a problem with the server, please try again later.</p>
+			<a class="btn btn-primary" href="/">Return to home</a>
 		</div>
 
 		<footer class="footer">
@@ -79,9 +57,9 @@ const indexHTML = `<!doctype html>
 </html>
 `
 
-func indexHandler() http.HandlerFunc {
-	t := template.Must(template.New("index").Parse(indexHTML))
-	return func(w http.ResponseWriter, r *http.Request) {
-		t.Execute(w, nil)
-	}
+func internalServerError(w http.ResponseWriter, r *http.Request, err error) {
+	fmt.Println("Internal Server Error:", err)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(internalServerErrorHTML))
 }
