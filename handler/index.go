@@ -25,8 +25,12 @@ const indexHTML = `<!doctype html>
 				max-width: 520px;
 			}
 
+			body {
+				padding-bottom: 100px;
+			}
+
 			.footer {
-				position: absolute;
+				position: fixed;
 				bottom: 0;
 				width: 100%;
 				height: 60px;
