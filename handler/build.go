@@ -21,7 +21,9 @@ func buildHandler(out string, loveDir string) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		id, err := doBuild(file, out, loveDir)
+		// TODO: Make this configurable
+		loveVersion := "0.10.2"
+		id, err := doBuild(file, out, filepath.Join(loveDir, loveVersion))
 		if err != nil {
 			internalServerError(w, r, err)
 			return
@@ -30,6 +32,7 @@ func buildHandler(out string, loveDir string) http.HandlerFunc {
 		outDir := buildDir(out, id)
 		filename := filepath.Base(outDir)
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.zip", filename))
+		// TODO: Sanitize input Content-Type here
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 
 		zip.Archive(outDir, w, nil)
