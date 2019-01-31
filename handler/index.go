@@ -43,7 +43,7 @@ const indexHTML = `<!doctype html>
 	<body>
 		<div class="container text-center">
 			</br><h1>LÖVE Distributor</h1></br>
-			
+
 			<p class="lead">Build and distribute your <a href="https://love2d.org/" target="_blank">LÖVE</a> games easily.</p>
 			</br>
 

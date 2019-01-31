@@ -12,7 +12,11 @@ import (
 	"github.com/RaniSputnik/lovedist/builder/zip"
 )
 
-func buildHandler(out string, loveDir string) http.HandlerFunc {
+func buildHandler(out string, loveDir string, loveVersions []string) http.HandlerFunc {
+	if len(loveVersions) == 0 {
+		panic("must support one or more love versions")
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		file, err := getFile("uploadfile", r)
 		if err != nil {
@@ -21,8 +25,17 @@ func buildHandler(out string, loveDir string) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		// TODO: Make this configurable
-		loveVersion := "11.2.0"
+		// TODO: Instead read this from conf.lua if it exists
+		// and if it doesn't exist, just use the latest version
+		loveVersion := r.FormValue("loveversion")
+		if loveVersion == "" {
+			loveVersion = loveVersions[0]
+		}
+		if err := loveVersionOK(loveVersion, loveVersions); err != nil {
+			badRequest(w, r, err)
+			return
+		}
+
 		id, err := doBuild(file, out, filepath.Join(loveDir, loveVersion))
 		if err != nil {
 			internalServerError(w, r, err)
@@ -37,6 +50,16 @@ func buildHandler(out string, loveDir string) http.HandlerFunc {
 
 		zip.Archive(outDir, w, nil)
 	}
+}
+
+func loveVersionOK(version string, supportedVersions []string) error {
+	for _, v := range supportedVersions {
+		if v == version {
+			return nil
+		}
+	}
+	return fmt.Errorf("Unsupported love version: '%s', supported versions are '%s'",
+		version, supportedVersions)
 }
 
 func getFile(name string, r *http.Request) (file multipart.File, err error) {

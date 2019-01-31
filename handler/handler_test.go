@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -23,6 +24,26 @@ func TestPing(t *testing.T) {
 	assert.Equal(t, "pong", w.Body.String(), "Body should be 'pong'")
 }
 
+func TestInfo(t *testing.T) {
+	w, r := recordRequest(http.MethodGet, "/_ah/info", nil)
+	runHandler(w, r)
+
+	type infoResponse struct {
+		Love struct {
+			SupportedVersions []string `json:"supported_versions"`
+		} `json:"love"`
+	}
+
+	expectedVersions := []string{"11.2.0", "0.10.2"}
+
+	var res infoResponse
+	err := json.NewDecoder(w.Body).Decode(&res)
+
+	assert.NoError(t, err, "Expected to decode body successfully")
+	assert.Equal(t, http.StatusOK, w.Code, "Status code should be '200 - OK'")
+	assert.Equal(t, expectedVersions, res.Love.SupportedVersions)
+}
+
 func TestBuild(t *testing.T) {
 	const buildPath = "/build"
 
@@ -32,9 +53,10 @@ func TestBuild(t *testing.T) {
 		runHandler(w, r)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code, "Status should be '400 - Bad Request'")
-		assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML")
-		assert.Contains(t, w.Body.String(), "Bad Request", "Body should contain the text 'Bad Request'")
-		assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		if assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML") {
+			assert.Contains(t, w.Body.String(), "Bad Request", "Body should contain the text 'Bad Request'")
+			assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		}
 	})
 
 	t.Run("FailsWhenMissingUploadFile", func(t *testing.T) {
@@ -47,9 +69,10 @@ func TestBuild(t *testing.T) {
 		runHandler(w, r)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code, "Status should be '400 - Bad Request'")
-		assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML")
-		assert.Contains(t, w.Body.String(), "Bad Request", "Body should contain the text 'Bad Request'")
-		assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		if assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML") {
+			assert.Contains(t, w.Body.String(), "Bad Request", "Body should contain the text 'Bad Request'")
+			assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		}
 	})
 
 	t.Run("FailsWhenLoveNotFound", func(t *testing.T) {
@@ -61,10 +84,27 @@ func TestBuild(t *testing.T) {
 		handler.ServeHTTP(w, r)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code, "Status should be '500 - Internal Server Error'")
-		assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML")
-		assert.Contains(t, w.Body.String(), "Something went wrong", "Body should contain the text 'Something went wrong'")
-		assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		if assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML") {
+			assert.Contains(t, w.Body.String(), "Something went wrong", "Body should contain the text 'Something went wrong'")
+			assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		}
 	})
+
+	t.Run("FailsWhenUnsupportedLoveVersionSpecified", func(t *testing.T) {
+		contentType, body := formWithValidUploadAndLoveVersion("invalid")
+		w, r := recordRequest(http.MethodPost, buildPath, body)
+		r.Header.Add("Content-Type", contentType)
+
+		runHandler(w, r)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code, "Status should be '400 - Bad Request'")
+		if assert.Contains(t, w.Header().Get("Content-Type"), "text/html", "Content-Type should be HTML") {
+			assert.Contains(t, w.Body.String(), "Bad Request", "Body should contain the text 'Bad Request'")
+			assert.Contains(t, w.Body.String(), `href="/"`, "Body should contain a link back to the index page")
+		}
+	})
+
+	// TODO: How do we test the correct love version was used when specified?
 
 	t.Run("ReturnsZip", func(t *testing.T) {
 		contentType, body := formWithValidUpload()
@@ -103,6 +143,18 @@ func formWithValidUpload() (contentType string, body *bytes.Buffer) {
 	}
 	return mustCreateForm(map[string]io.Reader{
 		"uploadfile": file,
+	})
+}
+
+func formWithValidUploadAndLoveVersion(version string) (contentType string, body *bytes.Buffer) {
+	file, err := os.Open("./fixture.love")
+	if err != nil {
+		panic(err)
+	}
+
+	return mustCreateForm(map[string]io.Reader{
+		"uploadfile":  file,
+		"loveversion": strings.NewReader(version),
 	})
 }
 
