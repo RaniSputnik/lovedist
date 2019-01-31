@@ -22,7 +22,7 @@ func buildHandler(out string, loveDir string) http.HandlerFunc {
 		defer file.Close()
 
 		// TODO: Make this configurable
-		loveVersion := "0.10.2"
+		loveVersion := "11.2.0"
 		id, err := doBuild(file, out, filepath.Join(loveDir, loveVersion))
 		if err != nil {
 			internalServerError(w, r, err)
