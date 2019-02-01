@@ -137,7 +137,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) http.Handler {
 }
 
 func formWithValidUpload() (contentType string, body *bytes.Buffer) {
-	file, err := os.Open("./fixture.love")
+	file, err := os.Open("./testdata/main.lua")
 	if err != nil {
 		panic(err)
 	}
@@ -147,7 +147,7 @@ func formWithValidUpload() (contentType string, body *bytes.Buffer) {
 }
 
 func formWithValidUploadAndLoveVersion(version string) (contentType string, body *bytes.Buffer) {
-	file, err := os.Open("./fixture.love")
+	file, err := os.Open("./testdata/main.lua")
 	if err != nil {
 		panic(err)
 	}

@@ -12,8 +12,8 @@ RUN go get github.com/DHowett/go-plist && \
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o lovedist .
 
-FROM scratch
-# TODO copy root CA's if needed
+# /tmp not writable FROM scratch :(
+FROM golang:1.10-alpine
 
 # Copy binary
 WORKDIR /root/

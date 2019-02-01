@@ -3,6 +3,8 @@ package handler
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -20,9 +22,11 @@ func buildHandler(out string, loveDir string, loveVersions []string) http.Handle
 	return func(w http.ResponseWriter, r *http.Request) {
 		file, err := getFile("uploadfile", r)
 		if err != nil {
+			log.Printf("Failed to get file: %v", err)
 			badRequest(w, r, err)
 			return
 		}
+		log.Printf("File = %+v", file)
 		defer file.Close()
 
 		// TODO: Instead read this from conf.lua if it exists
@@ -62,12 +66,27 @@ func loveVersionOK(version string, supportedVersions []string) error {
 		version, supportedVersions)
 }
 
-func getFile(name string, r *http.Request) (file multipart.File, err error) {
-	if err = r.ParseMultipartForm(32 << 20); err != nil {
-		return file, err
+func getFile(name string, r *http.Request) (multipart.File, error) {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		return nil, err
 	}
-	file, _, err = r.FormFile(name)
-	return file, err
+
+	receivedFiles := r.MultipartForm.File[name]
+	if len(receivedFiles) == 0 {
+		return nil, fmt.Errorf("no files found")
+	}
+
+	loveFile, err := ioutil.TempFile("", "love-")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := zip.ArchiveMultipartFormFiles(receivedFiles, loveFile, nil); err != nil {
+		return nil, err
+	}
+
+	_, err = loveFile.Seek(0, 0)
+	return loveFile, err
 }
 
 func doBuild(input io.Reader, out string, loveDir string) (string, error) {

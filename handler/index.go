@@ -51,7 +51,7 @@ const indexHTML = `<!doctype html>
 				<div class="card-body">
 					<form class="form-inline" enctype="multipart/form-data" action="/build" method="POST">
 						<div class="form-group">
-							<input type="file" class="form-control-file" id="fileInput" name="uploadfile" accept=".love" required>
+							<input type="file" class="form-control-file" id="fileInput" name="uploadfile" webkitdirectory mozdirectory required>
 						</div>
 						<button class="btn btn-primary" type="submit">Upload</button>
 					</form>
@@ -63,7 +63,7 @@ const indexHTML = `<!doctype html>
 			<div class="card">
 				<h5 class="card-header">How it works</h5>
 				<ul class="list-group list-group-flush">
-					<li class="list-group-item">Upload your .love file using the form above.</li>
+					<li class="list-group-item">Upload your source folder using the form above.</li>
 					<li class="list-group-item">We'll send you executables for Windows, Mac and Linux.</li>
 					<li class="list-group-item">Download and play the game or share with friends.</li>
 				</ul>
