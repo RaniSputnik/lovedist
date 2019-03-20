@@ -9,7 +9,6 @@ import (
 
 	plist "github.com/DHowett/go-plist"
 	"github.com/RaniSputnik/lovedist/builder/copy"
-	"github.com/RaniSputnik/lovedist/builder/zip"
 )
 
 // Params are provided to build to specify the build requirements
@@ -69,15 +68,6 @@ func Build(input io.Reader, params *Params) error {
 	return nil
 }
 
-// createLoveFile creates a .love archive from the given input directory
-func createLoveFile(outfile string, inputDir string) error {
-	fw, err := os.Create(outfile)
-	if err != nil {
-		return err
-	}
-	return zip.Archive(inputDir, fw, nil)
-}
-
 func buildMac(lovefile io.Reader, params *Params) error {
 	params.Logger.Print("Starting build for osx")
 
@@ -96,7 +86,9 @@ func buildMac(lovefile io.Reader, params *Params) error {
 		return err
 	}
 	defer file.Close()
-	io.Copy(file, lovefile)
+	if _, err := io.Copy(file, lovefile); err != nil {
+		return err
+	}
 
 	// Modify info.plist
 	plistpath := filepath.Join(outapp, "Contents", "Info.plist")
@@ -147,15 +139,12 @@ func buildWin(lovefile io.Reader, params *Params) error {
 	// Create the exe and copy the two files in
 	outexe := filepath.Join(outpath, fmt.Sprintf("%s.exe", params.Name))
 	f, err := os.Create(outexe)
+	if err != nil {
+		return err
+	}
 	defer f.Close()
-	if _, err := io.Copy(f, loveexe); err != nil {
-		return err
-	}
-	if _, err := io.Copy(f, lovefile); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = io.Copy(f, io.MultiReader(loveexe, lovefile))
+	return err
 }
 
 func filterRequiredWinFiles(entry os.FileInfo) bool {
