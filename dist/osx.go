@@ -12,13 +12,11 @@ import (
 
 type osxBuilder struct {
 	pathToLoveApp string
-
-	outputDir string // TODO: Remove me, should be common across all builders
 }
 
-func (b *osxBuilder) Build(p Project, input io.Reader) (res Result, err error) {
+func (b *osxBuilder) Build(p Project, input io.Reader, output string) (res Result, err error) {
 	// Copy the love.app
-	outapp := filepath.Join(b.outputDir, fmt.Sprintf("%s.app", p.Name))
+	outapp := filepath.Join(output, fmt.Sprintf("%s.app", p.Name))
 	if err = copy.Dir(b.pathToLoveApp, outapp); err != nil {
 		return
 	}

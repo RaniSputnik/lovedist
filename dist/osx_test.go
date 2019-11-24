@@ -21,7 +21,7 @@ func buildDir() string {
 
 func TestOSX(t *testing.T) {
 	outputDir := buildDir()
-	builder := dist.OSX(pathtolove, outputDir)
+	builder := dist.OSX(pathtolove)
 	p := dist.Project{
 		Name:     "TestProject",
 		BundleID: "com.example.TestProject",
@@ -31,7 +31,7 @@ func TestOSX(t *testing.T) {
 		t.Fatalf("Failed to open test data: %v", err)
 	}
 
-	_, err = builder.Build(p, input)
+	_, err = builder.Build(p, input, outputDir)
 
 	t.Run("Builds without error", func(t *testing.T) {
 		assert.NoError(t, err)
