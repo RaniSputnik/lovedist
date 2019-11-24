@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/RaniSputnik/lovedist)](https://goreportcard.com/report/RaniSputnik/lovedist)
+
 # lovedist
 
 A tool for building Love 2d games for distribution. Following the instructions [here](https://love2d.org/wiki/Game_Distribution).
@@ -22,13 +24,5 @@ $ go run *.go
 To run the tests use;
 
 ```
-$ pushd ./handler; go test; popd;
-```
-
-A successful run will look something like the following;
-
-```
-~/go/src/github.com/RaniSputnik/lovedist/handler ~/go/src/github.com/RaniSputnik/lovedist
-ok      github.com/RaniSputnik/lovedist/handler 1.220s
-~/go/src/github.com/RaniSputnik/lovedist
+$ go test ./...
 ```
