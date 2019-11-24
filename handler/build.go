@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/RaniSputnik/lovedist/builder"
 	"github.com/RaniSputnik/lovedist/builder/zip"
+	"github.com/RaniSputnik/lovedist/dist"
 )
 
 func buildHandler(out string, loveDir string, loveVersions []string) http.HandlerFunc {
@@ -93,18 +93,26 @@ func doBuild(input io.Reader, out string, loveDir string) (string, error) {
 	// TODO generate a proper ID
 	id := fmt.Sprintf("%d", time.Now().Unix())
 
-	params := &builder.Params{
-		OutputDir: buildDir(out, id),
-		WinParams: &builder.WinParams{
-			PathToLoveExe: filepath.Join(loveDir, "win32/love.exe"),
-		},
-		MacParams: &builder.MacParams{
-			PathToLoveApp:    filepath.Join(loveDir, "osx/love.app"),
-			BundleIdentifier: "com.example.todo",
-		},
-	}
-	err := builder.Build(input, params)
+	pathToLoveApp := filepath.Join(loveDir, "osx/love.app")
+	output := filepath.Join(buildDir(out, id), "osx")
+	_, err := dist.OSX(pathToLoveApp).Build(dist.Project{
+		Name:     "TODO",
+		BundleID: "com.example.todo",
+	}, input, output)
 	return id, err
+
+	// params := &builder.Params{
+	// 	OutputDir: buildDir(out, id),
+	// 	WinParams: &builder.WinParams{
+	// 		PathToLoveExe: filepath.Join(loveDir, "win32/love.exe"),
+	// 	},
+	// 	MacParams: &builder.MacParams{
+	// 		PathToLoveApp:    filepath.Join(loveDir, "osx/love.app"),
+	// 		BundleIdentifier: "com.example.todo",
+	// 	},
+	// }
+	// err := builder.Build(input, params)
+	// return id, err
 }
 
 func buildDir(root, id string) string {
