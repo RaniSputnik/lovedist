@@ -40,8 +40,14 @@ func (notImplementedBuilder) Build(p Project, input io.Reader) (res Result, err 
 func Win() Builder { return notImplementedBuilder{} }
 
 // OSX returns a builder that can build Love games for
-// distribution on desktop Mac.
-func OSX() Builder { return notImplementedBuilder{} }
+// distribution on desktop Mac. You must provide the path
+// to the love.app that will be bundled with the game.
+func OSX(loveApp string, outputDir string) Builder {
+	return &osxBuilder{
+		pathToLoveApp: loveApp,
+		outputDir:     outputDir,
+	}
+}
 
 // Linux returns a builder that can build Love games for
 // distribution on Linux computers.

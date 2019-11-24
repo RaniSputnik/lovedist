@@ -45,7 +45,7 @@ func (b *osxBuilder) Build(p Project, input io.Reader) (res Result, err error) {
 	}
 	var resPlist loveAppPlist
 	decoder := plist.NewDecoder(plistfile)
-	if err = decoder.Decode(&res); err != nil {
+	if err = decoder.Decode(&resPlist); err != nil {
 		return
 	}
 	resPlist.BundleName = p.Name
@@ -60,7 +60,7 @@ func (b *osxBuilder) Build(p Project, input io.Reader) (res Result, err error) {
 	}
 	encoder := plist.NewEncoder(plistfile)
 	encoder.Indent("\t")
-	if err = encoder.Encode(res); err != nil {
+	if err = encoder.Encode(resPlist); err != nil {
 		return
 	}
 	// TODO: Set something about the build to indicate where
