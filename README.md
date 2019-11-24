@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/RaniSputnik/lovedist)](https://goreportcard.com/report/RaniSputnik/lovedist)
+
 # lovedist
 
 A tool for building Love 2d games for distribution. Following the instructions [here](https://love2d.org/wiki/Game_Distribution).
