@@ -94,7 +94,8 @@ func doBuild(input io.Reader, out string, loveDir string) (string, error) {
 	id := fmt.Sprintf("%d", time.Now().Unix())
 
 	pathToLoveApp := filepath.Join(loveDir, "osx/love.app")
-	_, err := dist.OSX(pathToLoveApp, buildDir(out, id)).Build(dist.Project{
+	output := filepath.Join(buildDir(out, id), "osx")
+	_, err := dist.OSX(pathToLoveApp, output).Build(dist.Project{
 		Name:     "TODO",
 		BundleID: "com.example.todo",
 	}, input)

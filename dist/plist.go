@@ -1,6 +1,6 @@
 package dist
 
-type loveAppPlist struct {
+type Plist struct {
 	BuildMachineOSBuild         string        `plist:"BuildMachineOSBuild"`
 	BundleDevelopmentRegion     string        `plist:"CFBundleDevelopmentRegion"`
 	BundleDocumentTypes         []interface{} `plist:"CFBundleDocumentTypes"`

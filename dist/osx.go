@@ -18,7 +18,7 @@ type osxBuilder struct {
 
 func (b *osxBuilder) Build(p Project, input io.Reader) (res Result, err error) {
 	// Copy the love.app
-	outapp := filepath.Join(b.outputDir, "osx", fmt.Sprintf("%s.app", p.Name))
+	outapp := filepath.Join(b.outputDir, fmt.Sprintf("%s.app", p.Name))
 	if err = copy.Dir(b.pathToLoveApp, outapp); err != nil {
 		return
 	}
@@ -43,7 +43,7 @@ func (b *osxBuilder) Build(p Project, input io.Reader) (res Result, err error) {
 	if err != nil {
 		return
 	}
-	var resPlist loveAppPlist
+	var resPlist Plist
 	decoder := plist.NewDecoder(plistfile)
 	if err = decoder.Decode(&resPlist); err != nil {
 		return
