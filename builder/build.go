@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	plist "github.com/DHowett/go-plist"
+	plist "howett.net/plist"
 	"github.com/RaniSputnik/lovedist/builder/copy"
 )
 
