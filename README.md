@@ -24,13 +24,5 @@ $ go run *.go
 To run the tests use;
 
 ```
-$ pushd ./handler; go test; popd;
-```
-
-A successful run will look something like the following;
-
-```
-~/go/src/github.com/RaniSputnik/lovedist/handler ~/go/src/github.com/RaniSputnik/lovedist
-ok      github.com/RaniSputnik/lovedist/handler 1.220s
-~/go/src/github.com/RaniSputnik/lovedist
+$ go test ./...
 ```

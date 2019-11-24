@@ -1,12 +1,7 @@
-FROM golang:1.10
+FROM golang:1.13
 
 # Copy project files
 WORKDIR /go/src/github.com/RaniSputnik/lovedist
-
-# Install dependencies
-RUN go get github.com/DHowett/go-plist && \
-    go get github.com/gorilla/handlers && \
-    go get github.com/gorilla/mux
 
 # Build the binary
 COPY . .
